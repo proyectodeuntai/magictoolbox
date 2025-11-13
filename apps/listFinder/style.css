@@ -1,0 +1,8 @@
+/* style.css – optional small overrides */
+body {
+    transition: background-color 0.3s, color 0.3s;
+}
+
+details summary::marker {
+    color: #999;
+}

@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="es" class="scroll-smooth">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Magic Card Matcher</title>
+    <link rel="icon" href="../../assets/calvo.webp" type="image/png">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="style.css" />
+</head>
+
+<body class="bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 min-h-screen">
+    <header class="p-4 shadow-md bg-white dark:bg-gray-800 flex justify-between items-center">
+        <h1 class="text-2xl font-bold">Magic Card Matcher</h1>
+        <div class="flex gap-3 items-center">
+
+            <a href="../../index.html" class="text-blue-600 dark:text-blue-400 hover:underline text-sm">← Back to
+                Home</a>
+        </div>
+    </header>
+
+    <main class="p-6 max-w-5xl mx-auto space-y-10">
+        <section>
+            <h2 class="text-xl font-semibold mb-2">1) Sube la lista de otros usuarios</h2>
+            <div class="flex flex-wrap gap-3 mb-2">
+                <input id="identifier" type="text" placeholder="Nombre del usuario (e.g., Dani)"
+                    class="border rounded px-3 py-2 flex-grow dark:bg-gray-800 dark:border-gray-600" />
+                <input id="uploadFile" type="file" accept=".csv,.txt,text/plain"
+                    class="border rounded px-3 py-2 dark:bg-gray-800 dark:border-gray-600" />
+                <button id="saveBtn" class="bg-blue-600 text-white rounded px-4 py-2 hover:bg-blue-700">
+                    Guardar lista
+                </button>
+            </div>
+            <p id="message" class="text-sm text-red-500"></p>
+        </section>
+
+        <section>
+            <h2 class="text-xl font-semibold mb-2">2) Guardar usuario</h2>
+            <div class="flex gap-3 mb-3">
+                <button id="exportBtn" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
+                    Exportar DB
+                </button>
+                <label class="bg-yellow-400 text-black px-4 py-2 rounded cursor-pointer hover:bg-yellow-500">
+                    Importar DB <input id="importFile" type="file" accept=".json" class="hidden" />
+                </label>
+            </div>
+            <div id="userLists" class="grid sm:grid-cols-2 gap-4"></div>
+        </section>
+
+        <section>
+            <h2 class="text-xl font-semibold mb-2">3) Sube o pega tu propia lista</h2>
+            <div class="grid sm:grid-cols-2 gap-3 mb-3">
+                <textarea id="myList" placeholder="One card per line..."
+                    class="border rounded p-2 h-32 dark:bg-gray-800 dark:border-gray-600"></textarea>
+                <div>
+                    <input id="myFile" type="file" accept=".csv,.txt"
+                        class="border rounded px-3 py-2 dark:bg-gray-800 dark:border-gray-600" />
+                </div>
+            </div>
+            <div class="flex gap-3">
+                <button id="matchBtn" class="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700">
+                    Encontrar coincidencias
+                </button>
+                <input id="searchCard" type="text" placeholder="Search specific card"
+                    class="border rounded px-3 py-2 flex-grow dark:bg-gray-800 dark:border-gray-600" />
+                <button id="searchBtn"
+                    class="bg-gray-300 dark:bg-gray-700 px-4 py-2 rounded hover:bg-gray-400 dark:hover:bg-gray-600">
+                    Buscar cartas
+                </button>
+            </div>
+        </section>
+
+        <section>
+            <h2 class="text-xl font-semibold mb-2">Resultados</h2>
+            <div id="results" class="space-y-4 text-sm text-gray-800 dark:text-gray-200"></div>
+        </section>
+    </main>
+    <script src="script.js"></script>
