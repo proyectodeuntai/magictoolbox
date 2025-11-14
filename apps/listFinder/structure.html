@@ -8,6 +8,15 @@
     <link rel="icon" href="../../assets/calvo.webp" type="image/png">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="style.css" />
+    <style>
+        .user-header:hover {
+            background-color: rgba(0, 0, 0, 0.02);
+        }
+
+        .dark .user-header:hover {
+            background-color: rgba(255, 255, 255, 0.02);
+        }
+    </style>
 </head>
 
 <body class="bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 min-h-screen">
@@ -80,7 +89,7 @@
                     <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
                         <!-- Filtro Foil -->
                         <div>
-                            <label class="block text-xs font-medium mb-1">Especial</label>
+                            <label class="block text-xs font-medium mb-1">Acabado</label>
                             <select id="filterFoil"
                                 class="w-full border rounded px-3 py-2 text-sm dark:bg-gray-800 dark:border-gray-600">
                                 <option value="">Todos</option>
@@ -145,6 +154,14 @@
 
         <section>
             <h2 class="text-xl font-semibold mb-2">Resultados</h2>
+            <div class="flex gap-2 mb-3">
+                <button id="viewNormal" class="px-4 py-2 rounded bg-indigo-600 text-white hover:bg-indigo-700">
+                    Vista Normal
+                </button>
+                <button id="viewWhoHas" class="px-4 py-2 rounded bg-purple-600 text-white hover:bg-purple-700">
+                    Vista "Quién tiene qué"
+                </button>
+            </div>
             <div id="results" class="space-y-4 text-sm text-gray-800 dark:text-gray-200"></div>
         </section>
     </main>

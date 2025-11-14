@@ -20,8 +20,13 @@ const filterSet = document.getElementById("filterSet");
 const filterLanguage = document.getElementById("filterLanguage");
 const clearFiltersBtn = document.getElementById("clearFilters");
 const filterStatus = document.getElementById("filterStatus");
+const viewNormalBtn = document.getElementById("viewNormal");
+const viewWhoHasBtn = document.getElementById("viewWhoHas");
 
 let db = JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}");
+let currentMatches = null;
+let currentSearchCards = null;
+let currentShowFilterInfo = false;
 
 function saveDB() {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(db));
@@ -400,11 +405,19 @@ function searchAllWithFilters() {
 }
 
 function displayResults(myCards, matches, showFilterInfo = false) {
+    // Guardar los datos actuales para cambiar de vista
+    currentMatches = matches;
+    currentSearchCards = myCards;
+    currentShowFilterInfo = showFilterInfo;
+
     resultsDiv.innerHTML = "";
+
+    // Contar cartas únicas (no versiones)
+    const uniqueCardNames = new Set(myCards.map(c => c.Name.toLowerCase()));
 
     const myDiv = document.createElement("div");
     myDiv.innerHTML = `<div class="mb-3">
-    <div class="font-semibold">Tu búsqueda (${myCards.length} cartas):</div>
+    <div class="font-semibold">Tu búsqueda (${uniqueCardNames.size} cartas únicas):</div>
     <pre class="text-xs text-gray-700 dark:text-gray-300">${myCards.map(c => c.Name).join("\n")}</pre>
     ${showFilterInfo && filterStatus.textContent ? `<div class="text-xs text-blue-600 dark:text-blue-400 mt-1">${filterStatus.textContent}</div>` : ''}
   </div>`;
@@ -418,17 +431,32 @@ function displayResults(myCards, matches, showFilterInfo = false) {
 
     for (const [id, userMatches] of Object.entries(matches)) {
         const div = document.createElement("div");
-        div.className = "p-4 border rounded-lg bg-white dark:bg-gray-800 space-y-3";
+        div.className = "p-4 border rounded-lg bg-white dark:bg-gray-800";
+
+        // Contar cartas únicas (por nombre, no versiones)
+        const uniqueCards = new Set(userMatches.map(m => m.searchName.toLowerCase()));
+        const totalVersions = userMatches.reduce((sum, m) => sum + m.cards.length, 0);
+        const totalQty = userMatches.reduce((sum, m) =>
+            sum + m.cards.reduce((s, c) => s + parseInt(c.Quantity || 1), 0), 0
+        );
 
         let content = `
-            <div class="flex justify-between items-start mb-2">
-                <div class="font-semibold text-lg">${id}</div>
-                <button class="px-3 py-1 text-xs border rounded copyMatches hover:bg-gray-100 dark:hover:bg-gray-700">
-                    Copy All
-                </button>
+            <div class="flex justify-between items-center cursor-pointer user-header" onclick="this.nextElementSibling.classList.toggle('hidden')">
+                <div>
+                    <div class="font-semibold text-lg">${id}</div>
+                    <div class="text-xs text-gray-500">${uniqueCards.size} cartas únicas • ${totalVersions} versiones • ${totalQty} copias totales</div>
+                </div>
+                <div class="flex gap-2 items-center">
+                    <button class="px-3 py-1 text-xs border rounded copyMatches hover:bg-gray-100 dark:hover:bg-gray-700" onclick="event.stopPropagation()">
+                        Copy All
+                    </button>
+                    <span class="text-gray-400">▼</span>
+                </div>
             </div>
+            <div class="hidden mt-3 space-y-3">
         `;
 
+        // Agrupar por nombre de carta
         for (const match of userMatches) {
             const totalQty = match.cards.reduce((sum, c) => sum + parseInt(c.Quantity || 1), 0);
 
@@ -474,9 +502,11 @@ function displayResults(myCards, matches, showFilterInfo = false) {
             `;
         }
 
+        content += `</div>`;
         div.innerHTML = content;
 
-        div.querySelector(".copyMatches").onclick = () => {
+        div.querySelector(".copyMatches").onclick = (e) => {
+            e.stopPropagation();
             const allCards = userMatches.flatMap(m => m.cards.map(c => c.Name));
             navigator.clipboard.writeText(allCards.join("\n"));
             message.textContent = `Copiadas ${allCards.length} coincidencias de ${id}`;
@@ -486,7 +516,123 @@ function displayResults(myCards, matches, showFilterInfo = false) {
     }
 }
 
+// Vista "Quién tiene qué" - agrupa por carta en vez de por usuario
+function displayWhoHasView(myCards, matches, showFilterInfo = false) {
+    resultsDiv.innerHTML = "";
+
+    const uniqueCardNames = new Set(myCards.map(c => c.Name.toLowerCase()));
+
+    const myDiv = document.createElement("div");
+    myDiv.innerHTML = `<div class="mb-3">
+    <div class="font-semibold">Vista "Quién tiene qué" (${uniqueCardNames.size} cartas únicas):</div>
+    ${showFilterInfo && filterStatus.textContent ? `<div class="text-xs text-blue-600 dark:text-blue-400 mt-1">${filterStatus.textContent}</div>` : ''}
+  </div>`;
+    resultsDiv.appendChild(myDiv);
+
+    const keys = Object.keys(matches);
+    if (keys.length === 0) {
+        resultsDiv.innerHTML += `<p class="text-gray-500">No se encontraron coincidencias${showFilterInfo ? ' con los filtros aplicados' : ''}.</p>`;
+        return;
+    }
+
+    // Reorganizar datos: agrupar por carta en vez de por usuario
+    const cardMap = {};
+
+    for (const [userId, userMatches] of Object.entries(matches)) {
+        for (const match of userMatches) {
+            const cardName = match.searchName;
+            if (!cardMap[cardName]) {
+                cardMap[cardName] = {};
+            }
+            cardMap[cardName][userId] = match.cards;
+        }
+    }
+
+    // Mostrar cada carta con sus dueños
+    for (const [cardName, owners] of Object.entries(cardMap)) {
+        const div = document.createElement("div");
+        div.className = "p-4 border rounded-lg bg-white dark:bg-gray-800";
+
+        const totalOwners = Object.keys(owners).length;
+        const totalCopies = Object.values(owners).reduce((sum, cards) =>
+            sum + cards.reduce((s, c) => s + parseInt(c.Quantity || 1), 0), 0
+        );
+
+        let content = `
+            <div class="flex justify-between items-center cursor-pointer" onclick="this.nextElementSibling.classList.toggle('hidden')">
+                <div>
+                    <div class="font-semibold text-lg">${cardName}</div>
+                    <div class="text-xs text-gray-500">${totalOwners} jugadores tienen esta carta • ${totalCopies} copias totales</div>
+                </div>
+                <span class="text-gray-400">▼</span>
+            </div>
+            <div class="hidden mt-3 space-y-2">
+        `;
+
+        for (const [userId, cards] of Object.entries(owners)) {
+            const userTotal = cards.reduce((sum, c) => sum + parseInt(c.Quantity || 1), 0);
+
+            content += `
+                <div class="border-l-2 border-green-500 pl-3">
+                    <div class="font-medium text-sm mb-1">${userId} <span class="text-gray-500">(${userTotal} copias, ${cards.length} versiones)</span></div>
+                    <div class="space-y-1">
+            `;
+
+            for (const card of cards) {
+                const details = [];
+                if (card['Set name']) details.push(card['Set name']);
+                if (card['Set code']) details.push(`(${card['Set code']})`);
+                if (card['Collector number']) details.push(`#${card['Collector number']}`);
+
+                const badges = [];
+                if (card.Foil === 'foil') badges.push('<span class="text-yellow-500">⭐ Foil</span>');
+                if (card.Quantity && card.Quantity !== '1') badges.push(`<span class="font-semibold">x${card.Quantity}</span>`);
+
+                const rarityColors = {
+                    'common': 'text-gray-600 dark:text-gray-400',
+                    'uncommon': 'text-blue-600 dark:text-blue-400',
+                    'rare': 'text-yellow-600 dark:text-yellow-400',
+                    'mythic': 'text-red-600 dark:text-red-400'
+                };
+                const rarityColor = rarityColors[card.Rarity?.toLowerCase()] || 'text-purple-600 dark:text-purple-400';
+
+                if (card.Rarity) badges.push(`<span class="${rarityColor}">${card.Rarity}</span>`);
+                if (card.Language && card.Language !== 'en') badges.push(`<span class="text-blue-600">🌐 ${card.Language.toUpperCase()}</span>`);
+
+                content += `
+                    <div class="text-xs text-gray-600 dark:text-gray-400">
+                        ${details.join(' ')}
+                        ${badges.length > 0 ? `<span class="ml-2">${badges.join(' ')}</span>` : ''}
+                    </div>
+                `;
+            }
+
+            content += `
+                    </div>
+                </div>
+            `;
+        }
+
+        content += `</div>`;
+        div.innerHTML = content;
+        resultsDiv.appendChild(div);
+    }
+}
+
 // Inicialización
 renderDB();
 updateFilterOptions();
 updateFilterStatus();
+
+// Event listeners para cambio de vista
+viewNormalBtn.onclick = () => {
+    if (currentMatches && currentSearchCards) {
+        displayResults(currentSearchCards, currentMatches, currentShowFilterInfo);
+    }
+};
+
+viewWhoHasBtn.onclick = () => {
+    if (currentMatches && currentSearchCards) {
+        displayWhoHasView(currentSearchCards, currentMatches, currentShowFilterInfo);
+    }
+};
