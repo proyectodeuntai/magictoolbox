@@ -12,15 +12,14 @@
 
 <body class="bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 min-h-screen">
     <header class="p-4 shadow-md bg-white dark:bg-gray-800 flex justify-between items-center">
-        <h1 class="text-2xl font-bold">Magic Card Matcher</h1>
+        <h1 class="text-2xl font-bold">🎴 Magic Card Matcher</h1>
         <div class="flex gap-3 items-center">
-
             <a href="../../index.html" class="text-blue-600 dark:text-blue-400 hover:underline text-sm">← Back to
                 Home</a>
         </div>
     </header>
 
-    <main class="p-6 max-w-5xl mx-auto space-y-10">
+    <main class="p-6 max-w-6xl mx-auto space-y-10">
         <section>
             <h2 class="text-xl font-semibold mb-2">1) Sube la lista de otros usuarios</h2>
             <div class="flex flex-wrap gap-3 mb-2">
@@ -51,23 +50,96 @@
         <section>
             <h2 class="text-xl font-semibold mb-2">3) Sube o pega tu propia lista</h2>
             <div class="grid sm:grid-cols-2 gap-3 mb-3">
-                <textarea id="myList" placeholder="One card per line..."
+                <textarea id="myList" placeholder="Una carta por línea..."
                     class="border rounded p-2 h-32 dark:bg-gray-800 dark:border-gray-600"></textarea>
                 <div>
                     <input id="myFile" type="file" accept=".csv,.txt"
                         class="border rounded px-3 py-2 dark:bg-gray-800 dark:border-gray-600" />
                 </div>
             </div>
-            <div class="flex gap-3">
+            <div class="flex gap-3 mb-4">
                 <button id="matchBtn" class="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700">
                     Encontrar coincidencias
                 </button>
-                <input id="searchCard" type="text" placeholder="Search specific card"
-                    class="border rounded px-3 py-2 flex-grow dark:bg-gray-800 dark:border-gray-600" />
-                <button id="searchBtn"
-                    class="bg-gray-300 dark:bg-gray-700 px-4 py-2 rounded hover:bg-gray-400 dark:hover:bg-gray-600">
-                    Buscar cartas
-                </button>
+            </div>
+
+            <!-- Búsqueda con filtros -->
+            <div class="border-t pt-4 mt-4">
+                <h3 class="font-semibold mb-3">🔍 Búsqueda avanzada con filtros</h3>
+                <div class="space-y-3">
+                    <!-- Búsqueda por nombre -->
+                    <div class="flex gap-2">
+                        <input id="searchCard" type="text" placeholder="Nombre de la carta (ej: Lightning Bolt)"
+                            class="border rounded px-3 py-2 flex-grow dark:bg-gray-800 dark:border-gray-600" />
+                        <button id="searchBtn" class="bg-purple-600 text-white px-6 py-2 rounded hover:bg-purple-700">
+                            Buscar
+                        </button>
+                    </div>
+
+                    <!-- Filtros -->
+                    <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                        <!-- Filtro Foil -->
+                        <div>
+                            <label class="block text-xs font-medium mb-1">Especial</label>
+                            <select id="filterFoil"
+                                class="w-full border rounded px-3 py-2 text-sm dark:bg-gray-800 dark:border-gray-600">
+                                <option value="">Todos</option>
+                                <option value="foil">Solo Foil ⭐</option>
+                                <option value="nonfoil">Solo Non-foil</option>
+                            </select>
+                        </div>
+
+                        <!-- Filtro Rareza -->
+                        <div>
+                            <label class="block text-xs font-medium mb-1">Rareza</label>
+                            <select id="filterRarity"
+                                class="w-full border rounded px-3 py-2 text-sm dark:bg-gray-800 dark:border-gray-600">
+                                <option value="">Todas</option>
+                                <option value="common">Common</option>
+                                <option value="uncommon">Uncommon</option>
+                                <option value="rare">Rare</option>
+                                <option value="mythic">Mythic</option>
+                            </select>
+                        </div>
+
+                        <!-- Filtro Set -->
+                        <div>
+                            <label class="block text-xs font-medium mb-1">Expansión</label>
+                            <select id="filterSet"
+                                class="w-full border rounded px-3 py-2 text-sm dark:bg-gray-800 dark:border-gray-600">
+                                <option value="">Todas</option>
+                            </select>
+                        </div>
+
+                        <!-- Filtro Idioma -->
+                        <div>
+                            <label class="block text-xs font-medium mb-1">Idioma</label>
+                            <select id="filterLanguage"
+                                class="w-full border rounded px-3 py-2 text-sm dark:bg-gray-800 dark:border-gray-600">
+                                <option value="">Todos</option>
+                                <option value="en">English</option>
+                                <option value="es">Español</option>
+                                <option value="fr">Français</option>
+                                <option value="de">Deutsch</option>
+                                <option value="it">Italiano</option>
+                                <option value="pt">Português</option>
+                                <option value="ja">日本語</option>
+                                <option value="ko">한국어</option>
+                                <option value="ru">Русский</option>
+                                <option value="zh">中文</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Botón limpiar filtros -->
+                    <div class="flex gap-2">
+                        <button id="clearFilters"
+                            class="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 underline">
+                            Limpiar filtros
+                        </button>
+                        <span id="filterStatus" class="text-xs text-gray-500 italic"></span>
+                    </div>
+                </div>
             </div>
         </section>
 
@@ -77,3 +149,6 @@
         </section>
     </main>
     <script src="script.js"></script>
+</body>
+
+</html>

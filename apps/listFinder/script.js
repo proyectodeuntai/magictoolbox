@@ -13,11 +13,20 @@ const searchCard = document.getElementById("searchCard");
 const searchBtn = document.getElementById("searchBtn");
 const resultsDiv = document.getElementById("results");
 
+// Nuevos elementos de filtros
+const filterFoil = document.getElementById("filterFoil");
+const filterRarity = document.getElementById("filterRarity");
+const filterSet = document.getElementById("filterSet");
+const filterLanguage = document.getElementById("filterLanguage");
+const clearFiltersBtn = document.getElementById("clearFilters");
+const filterStatus = document.getElementById("filterStatus");
+
 let db = JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}");
 
 function saveDB() {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(db));
     renderDB();
+    updateFilterOptions();
 }
 
 // Función mejorada para parsear CSV respetando las columnas
@@ -27,12 +36,10 @@ function parseCSV(text) {
     const lines = text.split(/\r?\n/).filter(line => line.trim());
     if (lines.length === 0) return [];
 
-    // Detectar si la primera línea es un header CSV
     const firstLine = lines[0].toLowerCase();
     const isCSV = firstLine.includes('name') && firstLine.includes('set');
 
     if (isCSV && lines.length > 1) {
-        // Es un CSV con headers - parseamos la estructura
         const headers = parseCSVLine(lines[0]);
         const cards = [];
 
@@ -45,7 +52,6 @@ function parseCSV(text) {
                 card[header] = values[index] || '';
             });
 
-            // Solo añadir si tiene nombre
             if (card.Name && card.Name.trim()) {
                 cards.push(card);
             }
@@ -53,7 +59,6 @@ function parseCSV(text) {
 
         return cards;
     } else {
-        // Es una lista simple de nombres
         return lines.map(line => {
             const trimmed = line.trim();
             return trimmed ? { Name: trimmed } : null;
@@ -61,7 +66,6 @@ function parseCSV(text) {
     }
 }
 
-// Parser simple de líneas CSV que respeta comillas
 function parseCSVLine(line) {
     const result = [];
     let current = '';
@@ -84,7 +88,6 @@ function parseCSVLine(line) {
     return result;
 }
 
-// Función para parsear listas simples de texto
 function parseTextToCards(text) {
     if (!text) return [];
     return text
@@ -92,6 +95,32 @@ function parseTextToCards(text) {
         .map((l) => l.trim())
         .filter(Boolean)
         .map(name => ({ Name: name }));
+}
+
+// Actualizar opciones de filtros basados en la DB
+function updateFilterOptions() {
+    const sets = new Set();
+
+    for (const userCards of Object.values(db)) {
+        for (const card of userCards) {
+            if (card['Set name']) {
+                sets.add(card['Set name']);
+            }
+        }
+    }
+
+    // Actualizar select de sets
+    const sortedSets = Array.from(sets).sort();
+    filterSet.innerHTML = '<option value="">Todas</option>';
+    sortedSets.forEach(set => {
+        const option = document.createElement('option');
+        option.value = set;
+        option.textContent = set;
+        filterSet.appendChild(option);
+    });
+
+    // Log para debugging
+    console.log('Sets encontrados:', sortedSets.length);
 }
 
 function renderDB() {
@@ -107,7 +136,6 @@ function renderDB() {
         div.className =
             "p-4 border rounded-xl bg-white dark:bg-gray-800 shadow-sm flex flex-col";
 
-        // Contar cartas únicas por nombre (filtrar las que no tienen Name)
         const validCards = cards.filter(c => c && c.Name);
         const uniqueCards = new Set(validCards.map(c => c.Name.toLowerCase()));
 
@@ -196,21 +224,88 @@ importFile.onchange = (e) => {
     reader.readAsText(file);
 };
 
-function findMatches(myCards) {
+// Función para aplicar filtros a las cartas
+function applyFilters(cards) {
+    const foilFilter = filterFoil.value;
+    const rarityFilter = filterRarity.value.toLowerCase();
+    const setFilter = filterSet.value;
+    const languageFilter = filterLanguage.value;
+
+    return cards.filter(card => {
+        // Filtro de foil
+        if (foilFilter === 'foil' && card.Foil !== 'foil') return false;
+        if (foilFilter === 'nonfoil' && card.Foil === 'foil') return false;
+
+        // Filtro de rareza - normalizar y comparar
+        if (rarityFilter) {
+            const cardRarity = (card.Rarity || '').toLowerCase().trim();
+            if (cardRarity !== rarityFilter) return false;
+        }
+
+        // Filtro de set - buscar en Set name o Set code
+        if (setFilter) {
+            const cardSetName = (card['Set name'] || '').trim();
+            const cardSetCode = (card['Set code'] || '').trim();
+            if (cardSetName !== setFilter && cardSetCode !== setFilter) return false;
+        }
+
+        // Filtro de idioma
+        if (languageFilter && card.Language !== languageFilter) return false;
+
+        return true;
+    });
+}
+
+// Actualizar estado de filtros
+function updateFilterStatus() {
+    const activeFilters = [];
+    if (filterFoil.value) activeFilters.push(`Foil: ${filterFoil.options[filterFoil.selectedIndex].text}`);
+    if (filterRarity.value) activeFilters.push(`Rareza: ${filterRarity.options[filterRarity.selectedIndex].text}`);
+    if (filterSet.value) activeFilters.push(`Set: ${filterSet.value}`);
+    if (filterLanguage.value) activeFilters.push(`Idioma: ${filterLanguage.options[filterLanguage.selectedIndex].text}`);
+
+    if (activeFilters.length > 0) {
+        filterStatus.textContent = `Filtros activos: ${activeFilters.join(', ')}`;
+    } else {
+        filterStatus.textContent = '';
+    }
+}
+
+// Event listeners para actualizar el estado cuando cambian los filtros
+[filterFoil, filterRarity, filterSet, filterLanguage].forEach(filter => {
+    filter.addEventListener('change', updateFilterStatus);
+});
+
+// Limpiar filtros
+clearFiltersBtn.onclick = () => {
+    filterFoil.value = '';
+    filterRarity.value = '';
+    filterSet.value = '';
+    filterLanguage.value = '';
+    searchCard.value = '';
+    updateFilterStatus();
+    resultsDiv.innerHTML = '';
+    message.textContent = 'Filtros limpiados';
+};
+
+function findMatches(myCards, applyFiltersFlag = false) {
     const matches = {};
 
     for (const [id, userCards] of Object.entries(db)) {
         const userMatches = [];
 
-        // Para cada carta que busco
         for (const myCard of myCards) {
             if (!myCard || !myCard.Name) continue;
             const myName = myCard.Name.toLowerCase();
 
-            // Buscar en las cartas del usuario (filtrar cartas válidas)
-            const foundCards = userCards.filter(c =>
+            let foundCards = userCards.filter(c =>
                 c && c.Name && c.Name.toLowerCase() === myName
             );
+
+            // Aplicar filtros si está habilitado
+            if (applyFiltersFlag && foundCards.length > 0) {
+                foundCards = applyFilters(foundCards);
+            }
 
             if (foundCards.length > 0) {
                 userMatches.push({
@@ -230,7 +325,7 @@ function findMatches(myCards) {
 
 matchBtn.onclick = () => {
     const process = (cards) => {
-        const matches = findMatches(cards);
+        const matches = findMatches(cards, false);
         displayResults(cards, matches);
     };
     if (myFile.files[0]) {
@@ -250,26 +345,74 @@ matchBtn.onclick = () => {
 
 searchBtn.onclick = () => {
     const query = searchCard.value.trim();
-    if (!query) return;
+
+    // Si no hay query pero hay filtros, buscar todas las cartas con esos filtros
+    const hasFilters = filterFoil.value || filterRarity.value || filterSet.value || filterLanguage.value;
+
+    if (!query && !hasFilters) {
+        message.textContent = "Por favor, introduce el nombre de una carta o selecciona al menos un filtro";
+        return;
+    }
+
+    // Si hay filtros pero no query, buscar todas las cartas
+    if (!query && hasFilters) {
+        searchAllWithFilters();
+        return;
+    }
 
     const searchCards = [{ Name: query }];
-    const matches = findMatches(searchCards);
-    displayResults(searchCards, matches);
+    const matches = findMatches(searchCards, true); // Aplicar filtros en búsqueda
+    displayResults(searchCards, matches, true);
 };
 
-function displayResults(myCards, matches) {
+// Nueva función para buscar todas las cartas con filtros
+function searchAllWithFilters() {
+    const allMatches = {};
+
+    for (const [id, userCards] of Object.entries(db)) {
+        const filteredCards = applyFilters(userCards);
+
+        if (filteredCards.length > 0) {
+            // Agrupar por nombre de carta
+            const cardGroups = {};
+            for (const card of filteredCards) {
+                const name = card.Name;
+                if (!cardGroups[name]) {
+                    cardGroups[name] = [];
+                }
+                cardGroups[name].push(card);
+            }
+
+            // Convertir a formato de matches
+            const userMatches = [];
+            for (const [name, cards] of Object.entries(cardGroups)) {
+                userMatches.push({
+                    searchName: name,
+                    cards: cards
+                });
+            }
+
+            allMatches[id] = userMatches;
+        }
+    }
+
+    displayResults([{ Name: "Todas las cartas con filtros aplicados" }], allMatches, true);
+}
+
+function displayResults(myCards, matches, showFilterInfo = false) {
     resultsDiv.innerHTML = "";
 
     const myDiv = document.createElement("div");
     myDiv.innerHTML = `<div class="mb-3">
-    <div class="font-semibold">Your search (${myCards.length} cards):</div>
+    <div class="font-semibold">Tu búsqueda (${myCards.length} cartas):</div>
     <pre class="text-xs text-gray-700 dark:text-gray-300">${myCards.map(c => c.Name).join("\n")}</pre>
+    ${showFilterInfo && filterStatus.textContent ? `<div class="text-xs text-blue-600 dark:text-blue-400 mt-1">${filterStatus.textContent}</div>` : ''}
   </div>`;
     resultsDiv.appendChild(myDiv);
 
     const keys = Object.keys(matches);
     if (keys.length === 0) {
-        resultsDiv.innerHTML += `<p class="text-gray-500">No matches found.</p>`;
+        resultsDiv.innerHTML += `<p class="text-gray-500">No se encontraron coincidencias${showFilterInfo ? ' con los filtros aplicados' : ''}.</p>`;
         return;
     }
 
@@ -286,13 +429,12 @@ function displayResults(myCards, matches) {
             </div>
         `;
 
-        // Agrupar por nombre de carta
         for (const match of userMatches) {
             const totalQty = match.cards.reduce((sum, c) => sum + parseInt(c.Quantity || 1), 0);
 
             content += `
                 <div class="border-l-2 border-blue-500 pl-3">
-                    <div class="font-medium text-sm mb-1">${match.searchName} <span class="text-gray-500">(${totalQty} total)</span></div>
+                    <div class="font-medium text-sm mb-1">${match.searchName} <span class="text-gray-500">(${totalQty} total, ${match.cards.length} versiones)</span></div>
                     <div class="space-y-1">
             `;
 
@@ -305,8 +447,18 @@ function displayResults(myCards, matches) {
                 const badges = [];
                 if (card.Foil === 'foil') badges.push('<span class="text-yellow-500">⭐ Foil</span>');
                 if (card.Quantity && card.Quantity !== '1') badges.push(`<span class="font-semibold">x${card.Quantity}</span>`);
-                if (card.Rarity) badges.push(`<span class="text-purple-600 dark:text-purple-400">${card.Rarity}</span>`);
-                if (card.Language && card.Language !== 'en') badges.push(`<span class="text-blue-600">${card.Language.toUpperCase()}</span>`);
+
+                // Colores de rareza
+                const rarityColors = {
+                    'common': 'text-gray-600 dark:text-gray-400',
+                    'uncommon': 'text-blue-600 dark:text-blue-400',
+                    'rare': 'text-yellow-600 dark:text-yellow-400',
+                    'mythic': 'text-red-600 dark:text-red-400'
+                };
+                const rarityColor = rarityColors[card.Rarity?.toLowerCase()] || 'text-purple-600 dark:text-purple-400';
+
+                if (card.Rarity) badges.push(`<span class="${rarityColor}">${card.Rarity}</span>`);
+                if (card.Language && card.Language !== 'en') badges.push(`<span class="text-blue-600">🌐 ${card.Language.toUpperCase()}</span>`);
 
                 content += `
                     <div class="text-xs text-gray-600 dark:text-gray-400">
@@ -327,21 +479,14 @@ function displayResults(myCards, matches) {
         div.querySelector(".copyMatches").onclick = () => {
             const allCards = userMatches.flatMap(m => m.cards.map(c => c.Name));
             navigator.clipboard.writeText(allCards.join("\n"));
-            message.textContent = `Copied ${allCards.length} matches for ${id}`;
+            message.textContent = `Copiadas ${allCards.length} coincidencias de ${id}`;
         };
 
         resultsDiv.appendChild(div);
     }
 }
 
-// Theme toggle functionality
-const themeToggle = document.getElementById('theme-toggle');
-if (themeToggle) {
-    themeToggle.addEventListener('click', () => {
-        const html = document.documentElement;
-        html.classList.toggle('dark');
-        localStorage.theme = html.classList.contains('dark') ? 'dark' : 'light';
-    });
-}
-
+// Inicialización
 renderDB();
+updateFilterOptions();
+updateFilterStatus();
