@@ -8,27 +8,15 @@
     <link rel="icon" href="../../assets/calvo.webp" type="image/png">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="style.css" />
-    <style>
-        .user-header:hover {
-            background-color: rgba(0, 0, 0, 0.02);
-        }
-
-        .dark .user-header:hover {
-            background-color: rgba(255, 255, 255, 0.02);
-        }
-    </style>
 </head>
 
-<body class="bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 min-h-screen">
+<body class="bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 min-h-screen flex flex-col">
+
     <header class="p-4 shadow-md bg-white dark:bg-gray-800 flex justify-between items-center">
         <h1 class="text-2xl font-bold">🎴 Magic Card Matcher</h1>
-        <div class="flex gap-3 items-center">
-            <a href="../../index.html" class="text-blue-600 dark:text-blue-400 hover:underline text-sm">← Back to
-                Home</a>
-        </div>
+        <a href="../../index.html" class="text-sm text-gray-600 dark:text-gray-300 hover:underline">⬅ Volver</a>
     </header>
-
-    <main class="p-6 max-w-6xl mx-auto space-y-10">
+    <main class="p-6 max-w-6xl mx-auto space-y-10 flex-grow">
         <section>
             <h2 class="text-xl font-semibold mb-2">1) Sube la lista de otros usuarios</h2>
             <div class="flex flex-wrap gap-3 mb-2">
@@ -72,11 +60,9 @@
                 </button>
             </div>
 
-            <!-- Búsqueda con filtros -->
             <div class="border-t pt-4 mt-4">
                 <h3 class="font-semibold mb-3">🔍 Búsqueda avanzada con filtros</h3>
                 <div class="space-y-3">
-                    <!-- Búsqueda por nombre -->
                     <div class="flex gap-2">
                         <input id="searchCard" type="text" placeholder="Nombre de la carta (ej: Lightning Bolt)"
                             class="border rounded px-3 py-2 flex-grow dark:bg-gray-800 dark:border-gray-600" />
@@ -85,9 +71,7 @@
                         </button>
                     </div>
 
-                    <!-- Filtros -->
                     <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
-                        <!-- Filtro Foil -->
                         <div>
                             <label class="block text-xs font-medium mb-1">Acabado</label>
                             <select id="filterFoil"
@@ -98,7 +82,6 @@
                             </select>
                         </div>
 
-                        <!-- Filtro Rareza -->
                         <div>
                             <label class="block text-xs font-medium mb-1">Rareza</label>
                             <select id="filterRarity"
@@ -111,7 +94,6 @@
                             </select>
                         </div>
 
-                        <!-- Filtro Set -->
                         <div>
                             <label class="block text-xs font-medium mb-1">Expansión</label>
                             <select id="filterSet"
@@ -120,7 +102,6 @@
                             </select>
                         </div>
 
-                        <!-- Filtro Idioma -->
                         <div>
                             <label class="block text-xs font-medium mb-1">Idioma</label>
                             <select id="filterLanguage"
@@ -140,7 +121,6 @@
                         </div>
                     </div>
 
-                    <!-- Botón limpiar filtros -->
                     <div class="flex gap-2">
                         <button id="clearFilters"
                             class="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 underline">

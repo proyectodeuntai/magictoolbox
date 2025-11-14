@@ -41,7 +41,7 @@ document.getElementById("pdfBtn").addEventListener("click", async () => {
 
     // --- Configuración de redondeo de esquinas (Calidad Restaurada) ---
     const cornerRadius_px = 20;
-    const cardRenderWidth_px = 500; // RESTAURADO a 500 para máxima calidad
+    const cardRenderWidth_px = 500; // Restaurado a 500 para máxima calidad
     const cardRenderHeight_px = (cardRenderWidth_px / cardW_mm) * cardH_mm;
     // ---------------------------------------------
 
