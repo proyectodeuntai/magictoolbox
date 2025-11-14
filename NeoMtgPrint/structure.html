@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Neo MTG Print</title>
+    <link rel="icon" href="../../assets/calvo.webp" type="image/png">
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body class="bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100 min-h-screen flex flex-col">
+
+    <header class="flex justify-between items-center p-6 border-b border-gray-300 dark:border-gray-700">
+        <h1 class="text-2xl font-bold">Neo MTG Print</h1>
+        <a href="../../index.html" class="text-sm text-gray-600 dark:text-gray-300 hover:underline">⬅ Volver</a>
+    </header>
+
+    <main class="flex-grow p-6 max-w-5xl mx-auto">
+
+        <section class="mb-8">
+            <h2 class="text-xl font-semibold mb-4 text-center">Pega tu lista de cartas</h2>
+
+            <input type="text" id="deckNameInput"
+                class="w-full mb-3 p-3 border border-gray-300 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-800 focus:ring-blue-500 outline-none"
+                placeholder="Nombre del mazo (opcional)" />
+            <textarea id="deckInput"
+                class="w-full h-48 p-3 border border-gray-300 dark:border-gray-700 rounded-2xl bg-white dark:bg-gray-800 focus:ring-blue-500 outline-none resize"
+                placeholder="Pega tu lista de cartas aquí..."></textarea>
+
+            <div class="flex justify-center mt-4">
+                <button id="processBtn"
+                    class="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl shadow-lg transition">
+                    Mostrar
+                </button>
+            </div>
+        </section>
+
+        <section id="cardsContainer" class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6"></section>
+
+        <div id="pdfSection" class="hidden text-center mt-8">
+            <button id="pdfBtn"
+                class="px-6 py-2 bg-green-600 hover:bg-green-700 text-white rounded-2xl shadow-lg transition">
+                Generar PDF
+            </button>
+        </div>
+    </main>
+
+    <div id="modalOverlay" class="modal-overlay hidden"></div>
+    <div id="modal" class="modal hidden">
+        <img id="modalImg" class="w-full rounded-2xl shadow-lg" src="">
+    </div>
+
+    <footer class="text-center p-4 text-sm text-gray-500 dark:text-gray-400">
+        © 2025 Neo MTG Print
+    </footer>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="js/script.js"></script>
+    <script src="js/pdf.js"></script>
+</body>
+
+</html>
