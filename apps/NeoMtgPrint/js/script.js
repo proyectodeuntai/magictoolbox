@@ -1,10 +1,10 @@
 const processBtn = document.getElementById("processBtn");
 const deckInput = document.getElementById("deckInput");
 const cardsContainer = document.getElementById("cardsContainer");
-const pdfSection = document = document.getElementById("pdfSection");
+const pdfSection = document.getElementById("pdfSection"); // Corregido: document.getElementById
 
 let cardData = [];
-let selectedVersionType = "normal"; // Declaración Global necesaria para pdf.js
+const IMAGE_VERSION_TYPE = "large"; // MODIFICADO: Constante para forzar la máxima calidad
 
 // ==============================
 // FUNCIÓN DE THROTTLING Y RATE LIMITING (CLAVE)
@@ -290,7 +290,8 @@ function updateCardImage(cardElement, c) {
     const currentID = `${c.currentSet}|${c.currentCN}`;
     const imgObj = c.images[currentID];
 
-    const imgSrc = imgObj?.[selectedVersionType] || imgObj?.normal || Object.values(c.images)[0]?.normal || "";
+    // USANDO LA CONSTANTE DE MÁXIMA CALIDAD
+    const imgSrc = imgObj?.[IMAGE_VERSION_TYPE] || imgObj?.normal || Object.values(c.images)[0]?.normal || "";
 
     const imgElement = cardElement.querySelector("img");
     imgElement.src = imgSrc;
@@ -313,7 +314,8 @@ function renderCards() {
 
         const defaultID = `${c.currentSet}|${c.currentCN}`;
         const imgObj = c.images[defaultID] || Object.values(c.images)[0];
-        const imgSrc = imgObj?.[selectedVersionType] || imgObj?.normal || "";
+        // USANDO LA CONSTANTE DE MÁXIMA CALIDAD
+        const imgSrc = imgObj?.[IMAGE_VERSION_TYPE] || imgObj?.normal || "";
 
         card.innerHTML = `
             <img src="${imgSrc}" class="w-full rounded-xl mb-2 shadow">

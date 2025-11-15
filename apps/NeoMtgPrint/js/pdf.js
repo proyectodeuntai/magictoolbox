@@ -1,4 +1,7 @@
 document.getElementById("pdfBtn").addEventListener("click", async () => {
+    // Definimos el tipo de imagen fijo para asegurar la máxima calidad
+    const IMAGE_VERSION_TYPE = "large";
+
     // ------------------------------------------------------------------
     // LÓGICA: Obtener el nombre del archivo
     // ------------------------------------------------------------------
@@ -50,8 +53,9 @@ document.getElementById("pdfBtn").addEventListener("click", async () => {
     for (const card of cardData) {
         const currentID = `${card.currentSet}|${card.currentCN}`;
         const imgObj = card.images[currentID] || Object.values(card.images)[0];
-        const imgURL = imgObj[selectedVersionType] || imgObj.normal;
-        const cacheKey = currentID + '|' + selectedVersionType;
+        // Usamos la constante de máxima calidad
+        const imgURL = imgObj[IMAGE_VERSION_TYPE] || imgObj.normal;
+        const cacheKey = currentID + '|' + IMAGE_VERSION_TYPE; // Usamos la constante de máxima calidad
 
         if (!card.base64Cache) {
             card.base64Cache = {};
@@ -101,7 +105,8 @@ document.getElementById("pdfBtn").addEventListener("click", async () => {
 
     for (const card of cardData) {
         const currentID = `${card.currentSet}|${card.currentCN}`;
-        const cacheKey = currentID + '|' + selectedVersionType;
+        // Usamos la constante de máxima calidad
+        const cacheKey = currentID + '|' + IMAGE_VERSION_TYPE;
         const base64Data = card.base64Cache ? card.base64Cache[cacheKey] : null;
 
         if (!base64Data) {
