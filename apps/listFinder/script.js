@@ -91,31 +91,58 @@ function parseCSV(csvContent) {
     const lines = csvContent.trim().split('\n').filter(line => line.trim() !== '');
     if (lines.length < 2) return [];
 
-    const headers = lines[0].split(';').map(h => h.trim().replace(/"/g, ''));
+    // --- Lógica de Detección de Delimitador ---
+    const headerLine = lines[0];
+    const commaCount = (headerLine.match(/,/g) || []).length;
+    const semicolonCount = (headerLine.match(/;/g) || []).length;
+    const tabCount = (headerLine.match(/\t/g) || []).length;
+
+    let delimiter = ';';
+    // Si la coma tiene la mayor cantidad de ocurrencias, usar coma (típico de CSV anglosajón)
+    if (commaCount > semicolonCount && commaCount > tabCount && commaCount > 2) {
+        delimiter = ',';
+    }
+    // Si el tabulador es dominante, usar tabulador
+    else if (tabCount > semicolonCount && tabCount > commaCount && tabCount > 0) {
+        delimiter = '\t';
+    }
+
+    const headers = lines[0].split(delimiter).map(h => h.trim().replace(/"/g, ''));
     const cards = [];
 
-    const nameIndex = headers.indexOf('Card Name');
+    // --- MODIFICACIÓN CLAVE: Búsqueda flexible de índices ---
+    let nameIndex = headers.indexOf('Card Name');
+    if (nameIndex === -1) {
+        nameIndex = headers.indexOf('Name'); // Aceptar 'Name' como alternativo
+    }
+
+    let qtyIndex = headers.indexOf('Amount');
+    if (qtyIndex === -1) {
+        qtyIndex = headers.indexOf('Quantity'); // Aceptar 'Quantity' como alternativo
+    }
+    // --------------------------------------------------------
+
     const setCodeIndex = headers.indexOf('Set code');
     const foilIndex = headers.indexOf('Foil');
     const langIndex = headers.indexOf('Language');
     const rarityIndex = headers.indexOf('Rarity');
-    const qtyIndex = headers.indexOf('Amount');
 
     if (nameIndex === -1 || qtyIndex === -1) {
-        throw new Error("CSV no reconocido. Faltan las columnas 'Card Name' y 'Amount'.");
+        throw new Error(`CSV no reconocido. Faltan las columnas de Nombre (ej: 'Card Name' o 'Name') y Cantidad (ej: 'Amount' o 'Quantity'). (Delimitador usado: "${delimiter}")`);
     }
 
     for (let i = 1; i < lines.length; i++) {
-        const values = lines[i].split(';').map(v => v.trim().replace(/"/g, ''));
+        const values = lines[i].split(delimiter).map(v => v.trim().replace(/"/g, ''));
 
         if (values.length < Math.max(nameIndex, qtyIndex) + 1) continue;
 
         const qty = parseInt(values[qtyIndex]);
         if (isNaN(qty) || qty <= 0) continue;
 
+        // Mapear los nombres de columna del archivo a los nombres internos del sistema
         const card = {
-            'Card Name': values[nameIndex],
-            'Amount': qty,
+            'Card Name': values[nameIndex], // Usa el valor encontrado en el índice 'Name' o 'Card Name'
+            'Amount': qty, // Usa el valor encontrado en el índice 'Quantity' o 'Amount'
             'Set code': setCodeIndex !== -1 ? values[setCodeIndex] : 'N/A',
             'Foil': foilIndex !== -1 ? values[foilIndex].toLowerCase() : 'nonfoil',
             'Language': langIndex !== -1 ? values[langIndex] : 'English',
@@ -781,6 +808,9 @@ compareUsersBtn.addEventListener('click', () => {
 
     const users = Object.keys(localDB);
 
+    // 1. **NUEVO**: Almacenar el total de cartas cargadas por cada usuario
+    const totalCardsByUser = {};
+
     // Función helper para normalizar nombres de cartas
     function normalizeCardName(name) {
         if (!name) return '';
@@ -801,6 +831,9 @@ compareUsersBtn.addEventListener('click', () => {
         const userCards = localDB[user];
         if (!userCards || !Array.isArray(userCards)) return;
 
+        // **NUEVO**: Inicializar y contar el total de cartas
+        totalCardsByUser[user] = userCards.length;
+
         userCards.forEach(card => {
             if (!card || !card['Card Name']) return;
 
@@ -820,26 +853,39 @@ compareUsersBtn.addEventListener('click', () => {
     // Separar cartas comunes y únicas
     const commonCards = [];
     const uniqueCardsByUser = {};
+    const missingCardsByUser = {}; // **NUEVO**: Para almacenar las cartas que le faltan a cada usuario
 
-    // Inicializar arrays de cartas únicas para cada usuario
+    // Inicializar arrays de cartas únicas y faltantes para cada usuario
     users.forEach(user => {
         uniqueCardsByUser[user] = [];
+        missingCardsByUser[user] = []; // **NUEVO**
     });
 
-    // Clasificar las cartas
+    // Clasificar las cartas y calcular las faltantes
     cardMap.forEach((cardInfo) => {
         const numOwners = cardInfo.owners.size;
 
         if (numOwners === users.length) {
             // Todos los usuarios tienen esta carta
             commonCards.push(cardInfo.displayName);
-        } else if (numOwners === 1) {
-            // Solo un usuario tiene esta carta
-            const owner = Array.from(cardInfo.owners)[0];
-            uniqueCardsByUser[owner].push(cardInfo.displayName);
+        } else {
+            // **NUEVO**: Si no todos la tienen, vemos a quién le falta
+            const ownersArray = Array.from(cardInfo.owners);
+
+            // Si solo la tiene 1 (carta única)
+            if (numOwners === 1) {
+                const owner = ownersArray[0];
+                uniqueCardsByUser[owner].push(cardInfo.displayName);
+            }
+
+            // **NUEVO**: Iterar por todos los usuarios para ver a quién le falta
+            users.forEach(user => {
+                if (!cardInfo.owners.has(user)) {
+                    // Este usuario NO tiene esta carta
+                    missingCardsByUser[user].push(cardInfo.displayName);
+                }
+            });
         }
-        // Si numOwners está entre 1 y users.length, la carta es parcialmente común
-        // (algunos la tienen, otros no) - no la contamos como común ni única
     });
 
     // Generar HTML de resultados
@@ -847,7 +893,7 @@ compareUsersBtn.addEventListener('click', () => {
         <div class="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg mb-4">
             <h3 class="text-lg font-bold mb-2">📊 Comparación de Jugadores</h3>
             <p class="text-sm text-gray-600 dark:text-gray-400">Comparando ${users.length} listas de cartas</p>
-            <p class="text-xs text-gray-500 dark:text-gray-500 mt-1">Total de cartas únicas encontradas: ${cardMap.size}</p>
+            <p class="text-xs text-gray-500 dark:text-gray-500 mt-1">Total de cartas únicas encontradas (en todas las listas): ${cardMap.size}</p>
         </div>
         
         <div class="p-4 bg-green-50 dark:bg-green-900/20 rounded-lg mb-4">
@@ -865,18 +911,34 @@ compareUsersBtn.addEventListener('click', () => {
 
     users.forEach(user => {
         const uniqueCards = uniqueCardsByUser[user];
+        const totalCards = totalCardsByUser[user]; // **NUEVO**
+        const missingCards = missingCardsByUser[user]; // **NUEVO**
 
         comparisonHtml += `
-            <div class="p-4 bg-orange-50 dark:bg-orange-900/20 rounded-lg mb-4">
-                <h4 class="font-bold text-orange-700 dark:text-orange-400 mb-2">🎴 Cartas únicas de ${user} (${uniqueCards.length})</h4>
-                ${uniqueCards.length > 0 ? `
-                    <div class="max-h-60 overflow-y-auto">
-                        <ul class="list-disc list-inside text-sm space-y-1">
-                            ${uniqueCards.slice(0, 20).map(c => `<li>${c}</li>`).join('')}
-                            ${uniqueCards.length > 20 ? `<li class="text-gray-500 font-semibold">... y ${uniqueCards.length - 20} más</li>` : ''}
-                        </ul>
-                    </div>
-                ` : '<p class="text-sm text-gray-500">No tiene cartas que solo él/ella posea</p>'}
+            <div class="p-4 border border-gray-200 dark:border-gray-700 rounded-lg mb-4">
+                 <h4 class="font-bold text-gray-800 dark:text-gray-200 mb-2">👤 Resumen de **${user}**</h4>
+                 <p class="text-sm mb-2">**Total de cartas cargadas:** <span class="font-bold">${totalCards}</span></p> <div class="p-3 bg-orange-50 dark:bg-orange-900/20 rounded-lg mb-2">
+                     <h5 class="font-semibold text-sm text-orange-700 dark:text-orange-400 mb-1">🎴 Cartas **únicas** que posee (${uniqueCards.length})</h5>
+                     ${uniqueCards.length > 0 ? `
+                         <div class="max-h-40 overflow-y-auto">
+                             <ul class="list-disc list-inside text-xs space-y-0.5">
+                                 ${uniqueCards.slice(0, 10).map(c => `<li>${c}</li>`).join('')}
+                                 ${uniqueCards.length > 10 ? `<li class="text-gray-500 font-semibold">... y ${uniqueCards.length - 10} más</li>` : ''}
+                             </ul>
+                         </div>
+                     ` : '<p class="text-xs text-gray-500">No tiene cartas que solo él/ella posea</p>'}
+                 </div>
+
+                 <div class="p-3 bg-red-50 dark:bg-red-900/20 rounded-lg">
+                      <h5 class="font-semibold text-sm text-red-700 dark:text-red-400 mb-1">❌ Cartas que **le faltan** (${missingCards.length})</h5> ${missingCards.length > 0 ? `
+                          <div class="max-h-40 overflow-y-auto">
+                              <ul class="list-disc list-inside text-xs space-y-0.5">
+                                  ${missingCards.slice(0, 10).map(c => `<li>${c}</li>`).join('')}
+                                  ${missingCards.length > 10 ? `<li class="text-gray-500 font-semibold">... y ${missingCards.length - 10} más</li>` : ''}
+                              </ul>
+                          </div>
+                      ` : '<p class="text-xs text-gray-500">Posee todas las cartas conocidas por los demás</p>'}
+                  </div>
             </div>
         `;
     });
