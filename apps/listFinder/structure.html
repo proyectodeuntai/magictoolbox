@@ -16,6 +16,46 @@
         .dark .user-header:hover {
             background-color: rgba(255, 255, 255, 0.02);
         }
+
+        #wishlistProgressBarContainer {
+            background-color: #e5e7eb;
+            border-radius: 9999px;
+            height: 0.5rem;
+            overflow: hidden;
+        }
+
+        #wishlistProgressBar {
+            transition: width 0.5s ease-in-out;
+            background-color: #10b981;
+            height: 100%;
+        }
+
+        /* Mejorar estilo del label de archivo */
+        .file-label {
+            display: block;
+            width: 100%;
+            text-align: center;
+            border: 2px dashed #d1d5db;
+            padding: 0.75rem;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            transition: all 0.15s;
+            background-color: transparent;
+        }
+
+        .file-label:hover {
+            background-color: rgba(0, 0, 0, 0.05);
+            border-color: #9ca3af;
+        }
+
+        .dark .file-label {
+            border-color: #4b5563;
+        }
+
+        .dark .file-label:hover {
+            background-color: rgba(255, 255, 255, 0.05);
+            border-color: #6b7280;
+        }
     </style>
 </head>
 
@@ -26,243 +66,85 @@
         </a>
     </header>
 
-    <main class="p-6 max-w-6xl mx-auto space-y-10">
-        <section>
-            <h2 class="text-xl font-semibold mb-2">1) Sube la lista de otros usuarios</h2>
-            <div class="flex flex-wrap gap-3 mb-2">
-                <input id="identifier" type="text" placeholder="Nombre del usuario (e.g., Dani)"
-                    class="border rounded px-3 py-2 flex-grow dark:bg-gray-800 dark:border-gray-600" />
-                <input id="uploadFile" type="file" accept=".csv,.txt,text/plain"
-                    class="border rounded px-3 py-2 dark:bg-gray-800 dark:border-gray-600" />
-                <button id="saveBtn" class="bg-blue-600 text-white rounded px-4 py-2 hover:bg-blue-700">
-                    Guardar lista
-                </button>
-            </div>
-            <p id="message" class="text-sm text-red-500"></p>
-        </section>
+    <main class="p-6 max-w-7xl mx-auto space-y-6">
+        <div class="grid lg:grid-cols-3 gap-6">
+            <section class="lg:col-span-1 bg-white dark:bg-gray-800 rounded-lg shadow-xl p-6 h-fit">
+                <h2 class="text-xl font-semibold mb-4">📚 Mi Colección (DB)</h2>
 
-        <section>
-            <h2 class="text-xl font-semibold mb-2">2) Guardar usuario</h2>
-            <div class="flex gap-3 mb-3">
-                <button id="exportBtn" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
-                    Exportar DB
-                </button>
-                <label class="bg-yellow-400 text-black px-4 py-2 rounded cursor-pointer hover:bg-yellow-500">
-                    Importar DB <input id="importFile" type="file" accept=".json" class="hidden" />
-                </label>
-            </div>
-            <div id="userLists" class="grid sm:grid-cols-2 gap-4"></div>
-        </section>
-
-        <section>
-            <h2 class="text-xl font-semibold mb-2">3) Sube o pega tu propia lista</h2>
-            <div class="flex gap-2 mb-3">
-                <button id="toggleWishlist" class="px-4 py-2 rounded bg-pink-600 text-white hover:bg-pink-700">
-                    💝 Mi Wishlist
-                </button>
-            </div>
-            <div class="grid sm:grid-cols-2 gap-3 mb-3">
-                <textarea id="myList" placeholder="Una carta por línea..."
-                    class="border rounded p-2 h-32 dark:bg-gray-800 dark:border-gray-600"></textarea>
-                <div>
-                    <input id="myFile" type="file" accept=".csv,.txt"
-                        class="border rounded px-3 py-2 dark:bg-gray-800 dark:border-gray-600" />
-                </div>
-            </div>
-            <div class="flex gap-3 mb-4">
-                <button id="matchBtn" class="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700">
-                    Encontrar coincidencias
-                </button>
-            </div>
-
-            <div class="border-t pt-4 mt-4">
-                <h3 class="font-semibold mb-3">🔍 Búsqueda avanzada con filtros</h3>
-                <p id="filterMessage" class="text-sm text-red-500 mb-2"></p>
-                <div class="space-y-3">
-                    <div class="flex gap-2">
-                        <input id="searchCard" type="text" placeholder="Nombre de la carta (ej: Lightning Bolt)"
-                            class="border rounded px-3 py-2 flex-grow dark:bg-gray-800 dark:border-gray-600" />
-                        <button id="searchBtn" class="bg-purple-600 text-white px-6 py-2 rounded hover:bg-purple-700">
-                            Buscar
-                        </button>
-                    </div>
-
-                    <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
-                        <div>
-                            <label class="block text-xs font-medium mb-1">Acabado</label>
-                            <select id="filterFoil"
-                                class="w-full border rounded px-3 py-2 text-sm dark:bg-gray-800 dark:border-gray-600">
-                                <option value="">Todos</option>
-                                <option value="foil">Solo Foil ⭐</option>
-                                <option value="nonfoil">Solo Non-foil</option>
-                            </select>
-                        </div>
-
-                        <div>
-                            <label class="block text-xs font-medium mb-1">Rareza</label>
-                            <select id="filterRarity"
-                                class="w-full border rounded px-3 py-2 text-sm dark:bg-gray-800 dark:border-gray-600">
-                                <option value="">Todas</option>
-                                <option value="common">Common</option>
-                                <option value="uncommon">Uncommon</option>
-                                <option value="rare">Rare</option>
-                                <option value="mythic">Mythic</option>
-                            </select>
-                        </div>
-
-                        <div>
-                            <label class="block text-xs font-medium mb-1">Expansión</label>
-                            <select id="filterSet"
-                                class="w-full border rounded px-3 py-2 text-sm dark:bg-gray-800 dark:border-gray-600">
-                                <option value="">Todas</option>
-                            </select>
-                        </div>
-
-                        <div>
-                            <label class="block text-xs font-medium mb-1">Idioma</label>
-                            <select id="filterLanguage"
-                                class="w-full border rounded px-3 py-2 text-sm dark:bg-gray-800 dark:border-gray-600">
-                                <option value="">Todos</option>
-                                <option value="en">English</option>
-                                <option value="es">Español</option>
-                                <option value="fr">Français</option>
-                                <option value="de">Deutsch</option>
-                                <option value="it">Italiano</option>
-                                <option value="pt">Português</option>
-                                <option value="ja">日本語</option>
-                                <option value="ko">한국어</option>
-                                <option value="ru">Русский</option>
-                                <option value="zh">中文</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <div class="flex gap-2">
-                        <button id="clearFilters"
-                            class="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 underline">
-                            Limpiar filtros
-                        </button>
-                        <span id="filterStatus" class="text-xs text-gray-500 italic"></span>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <section>
-            <div class="flex justify-between items-center mb-4">
-                <h2 class="text-xl font-semibold">Resultados</h2>
-            </div>
-            <div id="results" class="space-y-4 text-sm text-gray-800 dark:text-gray-200"></div>
-        </section>
-
-        <div id="compareModal"
-            class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex items-center justify-center p-4">
-            <div class="bg-white dark:bg-gray-800 rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto p-6">
-                <div class="flex justify-between items-center mb-4">
-                    <h3 class="text-xl font-bold">Comparar Jugadores</h3>
-                    <button id="closeCompareModal" class="text-2xl hover:text-gray-500">&times;</button>
-                </div>
                 <div class="space-y-4">
                     <div>
-                        <label class="block text-sm font-medium mb-1">Jugador 1:</label>
-                        <select id="compareUser1"
+                        <label for="identifier" class="block text-sm font-medium mb-1">Tu identificador /
+                            Nombre:</label>
+                        <input type="text" id="identifier" placeholder="Ej: Calvo"
                             class="w-full border rounded px-3 py-2 dark:bg-gray-700 dark:border-gray-600">
-                            <option value="">Selecciona un jugador</option>
-                        </select>
                     </div>
-                    <div>
-                        <label class="block text-sm font-medium mb-1">Jugador 2:</label>
-                        <select id="compareUser2"
-                            class="w-full border rounded px-3 py-2 dark:bg-gray-700 dark:border-gray-600">
-                            <option value="">Selecciona un jugador</option>
-                        </select>
-                    </div>
-                    <button id="runComparison"
-                        class="w-full bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700">
-                        Comparar
+
+                    <label id="myFile" for="uploadFile" class="file-label">
+                        Seleccionar archivo (.csv)
+                    </label>
+                    <input type="file" id="uploadFile" accept=".csv" class="hidden">
+
+                    <button id="saveBtn"
+                        class="w-full bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 font-semibold transition duration-150">
+                        💾 Guardar Lista
                     </button>
-                </div>
-                <div id="comparisonResults" class="mt-4"></div>
-            </div>
-        </div>
-
-        <div id="statsModal"
-            class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex items-center justify-center p-4">
-            <div class="bg-white dark:bg-gray-800 rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto p-6">
-                <div class="flex justify-between items-center mb-4">
-                    <h3 class="text-xl font-bold">📊 Estadísticas del Grupo</h3>
-                    <button id="closeStatsModal" class="text-2xl hover:text-gray-500">&times;</button>
-                </div>
-                <div id="statsContent" class="space-y-6"></div>
-            </div>
-        </div>
-
-        <div id="wishlistModal"
-            class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex items-center justify-center p-4">
-            <div class="bg-white dark:bg-gray-800 rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto p-6">
-                <div class="flex justify-between items-center mb-4">
-                    <h3 class="text-xl font-bold">💝 Mi Wishlist</h3>
-                    <div class="flex gap-2 items-center">
-                        <button id="shareWishlist"
-                            class="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm">
-                            📤 Compartir
-                        </button>
-                        <button id="importWishlist"
-                            class="px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700 text-sm">
-                            📥 Importar
-                        </button>
-                        <button id="closeWishlistModal" class="text-2xl hover:text-gray-500">&times;</button>
-                    </div>
+                    <div id="message" class="text-sm mt-2"></div>
                 </div>
 
-                <div id="wishlistStats"
-                    class="mb-6 p-4 bg-gradient-to-r from-pink-50 to-purple-50 dark:from-pink-900 dark:to-purple-900 rounded-lg">
-                    <div class="flex justify-between items-center mb-2">
-                        <div class="font-semibold">Progreso de Wishlist</div>
-                        <div id="wishlistPercentage" class="text-2xl font-bold text-pink-600 dark:text-pink-400">0%
-                        </div>
-                    </div>
-                    <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-4 mb-2">
-                        <div id="wishlistProgressBar"
-                            class="bg-gradient-to-r from-pink-500 to-purple-500 h-4 rounded-full transition-all duration-500"
-                            style="width: 0%"></div>
-                    </div>
-                    <div class="grid grid-cols-4 gap-2 text-sm">
-                        <div class="text-center">
-                            <div class="font-semibold" id="wishlistTotal">0</div>
-                            <div class="text-xs text-gray-600 dark:text-gray-400">Total</div>
-                        </div>
-                        <div class="text-center">
-                            <div class="font-semibold text-green-600 dark:text-green-400" id="wishlistAvailable">0</div>
-                            <div class="text-xs text-gray-600 dark:text-gray-400">Disponibles</div>
-                        </div>
-                        <div class="text-center">
-                            <div class="font-semibold text-red-600 dark:text-red-400" id="wishlistMissing">0</div>
-                            <div class="text-xs text-gray-600 dark:text-gray-400">Faltan</div>
-                        </div>
-                        <div class="text-center">
-                            <div class="font-semibold text-blue-600 dark:text-blue-400" id="wishlistValue">-</div>
-                            <div class="text-xs text-gray-600 dark:text-gray-400">Valor €</div>
-                        </div>
-                    </div>
-                    <button id="updatePrices"
-                        class="mt-3 w-full text-xs bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700">
-                        💰 Actualizar Precios
+                <hr class="my-6 border-gray-200 dark:border-gray-700">
+
+                <h3 class="text-lg font-semibold mb-3">Jugadores Cargados:</h3>
+                <div id="userListsDiv" class="space-y-2">
+                    <p class="text-gray-500 dark:text-gray-400 text-sm">Carga una lista para empezar.</p>
+                </div>
+
+                <hr class="my-6 border-gray-200 dark:border-gray-700">
+
+                <div class="flex gap-2">
+                    <button id="exportBtn"
+                        class="flex-1 bg-yellow-600 text-white px-4 py-2 rounded hover:bg-yellow-700 font-semibold text-sm transition duration-150">
+                        Exportar DB
                     </button>
+                    <input type="file" id="importFile" accept=".json" class="hidden">
+                    <label id="myList" for="importFile"
+                        class="flex-1 text-center bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600 font-semibold text-sm cursor-pointer transition duration-150">
+                        Importar DB
+                    </label>
                 </div>
+            </section>
 
-                <div class="mb-6 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                    <h4 class="font-semibold mb-3">Añadir carta a la wishlist:</h4>
-                    <div class="flex gap-2 mb-2">
-                        <input type="text" id="wishlistCardName" placeholder="Nombre de la carta"
-                            class="flex-grow border rounded px-3 py-2 dark:bg-gray-800 dark:border-gray-600">
-                        <select id="wishlistPriority"
-                            class="border rounded px-3 py-2 dark:bg-gray-800 dark:border-gray-600">
-                            <option value="high">🔴 Alta</option>
-                            <option value="medium" selected>🟡 Media</option>
-                            <option value="low">🟢 Baja</option>
-                        </select>
-                        <button id="addToWishlist" class="bg-pink-600 text-white px-4 py-2 rounded hover:bg-pink-700">
+            <section class="lg:col-span-1 bg-white dark:bg-gray-800 rounded-lg shadow-xl p-6 h-fit">
+                <h2 class="text-xl font-semibold mb-4">⭐ Mi Wishlist</h2>
+
+                <details class="mb-4 p-3 rounded-lg bg-gray-50 dark:bg-gray-700/50 shadow-inner">
+                    <summary class="font-medium cursor-pointer text-sm">
+                        Estadísticas de Wishlist
+                    </summary>
+                    <div class="mt-2 text-sm space-y-1">
+                        <div id="wishlistStats">
+                            <p>Total de cartas: <span id="wishlistTotal" class="font-bold">0</span></p>
+                            <p>Disponibles: <span id="wishlistAvailable" class="font-bold text-emerald-600">0</span>
+                            </p>
+                            <p>Faltantes: <span id="wishlistMissing" class="font-bold text-red-600">0</span></p>
+                            <p>Valor total (AVG MKM): <span id="wishlistValue" class="font-bold text-blue-600">0.00
+                                    €</span></p>
+                        </div>
+                        <div id="wishlistProgressBarContainer" class="mt-3">
+                            <div id="wishlistProgressBar" style="width: 0%;"></div>
+                        </div>
+                        <p class="text-right text-xs mt-1"><span id="wishlistPercentage" class="font-bold">0%</span>
+                            completado</p>
+                    </div>
+                </details>
+
+                <div class="space-y-3 mb-6 p-4 border rounded-lg dark:border-gray-700">
+                    <label for="wishlistInput" class="block text-sm font-medium">Añadir Carta (1x Nombre
+                        [SETCODE])</label>
+                    <div class="flex gap-2">
+                        <input type="text" id="wishlistInput" placeholder="Ej: 1x Sol Ring (3ED)"
+                            class="flex-1 border rounded px-3 py-2 dark:bg-gray-700 dark:border-gray-600 text-sm">
+                        <button id="addWishlistBtn"
+                            class="bg-pink-600 text-white px-4 py-2 rounded hover:bg-pink-700 transition duration-150">
                             Añadir
                         </button>
                     </div>
@@ -284,43 +166,140 @@
                 <div id="wishlistContent" class="space-y-2"></div>
 
                 <button id="checkWishlistAvailability"
-                    class="w-full mt-4 bg-indigo-600 text-white px-4 py-3 rounded hover:bg-indigo-700 font-semibold">
+                    class="w-full mt-4 bg-indigo-600 text-white px-4 py-3 rounded hover:bg-indigo-700 font-semibold transition duration-150">
                     🔍 Buscar Disponibilidad
                 </button>
 
                 <div id="wishlistResults" class="mt-4"></div>
-            </div>
+            </section>
+
+            <section class="lg:col-span-1 bg-white dark:bg-gray-800 rounded-lg shadow-xl p-6 h-fit">
+                <h2 class="text-xl font-semibold mb-4">🔎 Buscador / Match</h2>
+
+                <div class="mb-4">
+                    <label for="searchCard" class="block text-sm font-medium mb-1">Nombre de la carta:</label>
+                    <div class="text-xs text-gray-500 mb-2">
+                        💡 Para buscar múltiples cartas, sepáralas con "<strong>, </strong>" (coma + espacio)<br>
+                        Ejemplo: <code
+                            class="bg-gray-200 dark:bg-gray-700 px-1 rounded">Sol Ring, Lightning Bolt, Counterspell</code>
+                    </div>
+                    <div class="flex gap-2">
+                        <input type="text" id="searchCard" placeholder="Ej: Ragavan, Nimble Pilferer"
+                            class="flex-1 border rounded px-3 py-2 dark:bg-gray-700 dark:border-gray-600">
+                        <button id="searchBtn"
+                            class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 font-semibold transition duration-150">
+                            Buscar
+                        </button>
+                    </div>
+                </div>
+
+                <details class="mb-6 p-3 rounded-lg bg-gray-50 dark:bg-gray-700/50 shadow-inner">
+                    <summary class="font-medium cursor-pointer text-sm">
+                        Filtros de Búsqueda
+                    </summary>
+                    <div class="mt-2 space-y-3">
+                        <div>
+                            <label for="filterFoil" class="block text-sm font-medium mb-1">Foil/No-Foil:</label>
+                            <select id="filterFoil"
+                                class="w-full border rounded px-3 py-2 dark:bg-gray-700 dark:border-gray-600">
+                                <option value="all">Cualquiera</option>
+                                <option value="foil">Solo Foil</option>
+                                <option value="nonfoil">Solo No-Foil</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="filterRarity" class="block text-sm font-medium mb-1">Rareza:</label>
+                            <select id="filterRarity"
+                                class="w-full border rounded px-3 py-2 dark:bg-gray-700 dark:border-gray-600">
+                                <option value="all">Cualquiera</option>
+                                <option value="mythic">Mítica</option>
+                                <option value="rare">Rara</option>
+                                <option value="uncommon">Infrecuente</option>
+                                <option value="common">Común</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="filterSet" class="block text-sm font-medium mb-1">Set:</label>
+                            <select id="filterSet"
+                                class="w-full border rounded px-3 py-2 dark:bg-gray-700 dark:border-gray-600">
+                                <option value="all">Cualquiera</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="filterLanguage" class="block text-sm font-medium mb-1">Idioma:</label>
+                            <select id="filterLanguage"
+                                class="w-full border rounded px-3 py-2 dark:bg-gray-700 dark:border-gray-600">
+                                <option value="all">Cualquiera</option>
+                                <option value="es">Español</option>
+                                <option value="en">Inglés</option>
+                                <option value="fr">Francés</option>
+                                <option value="de">Alemán</option>
+                                <option value="it">Italiano</option>
+                                <option value="jp">Japonés</option>
+                                <option value="cn">Chino</option>
+                            </select>
+                        </div>
+
+                        <div class="flex justify-end gap-2 mt-4">
+                            <div id="filterMessage" class="text-sm text-red-500 mr-auto flex items-center"></div>
+                            <button id="clearFiltersBtn"
+                                class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600 font-semibold transition duration-150">
+                                Limpiar Filtros
+                            </button>
+                            <select id="filterStatus"
+                                class="border rounded px-3 py-2 dark:bg-gray-700 dark:border-gray-600">
+                                <option value="all">Ver Todo</option>
+                                <option value="missing">Ver Faltantes</option>
+                                <option value="available">Ver Disponibles</option>
+                            </select>
+                        </div>
+                    </div>
+                </details>
+
+                <h2 class="text-xl font-semibold mb-4">Resultado de Búsqueda / Match</h2>
+                <div class="flex justify-end mb-4">
+                    <details class="relative">
+                        <summary
+                            class="flex items-center justify-center p-2 rounded-lg bg-gray-200 dark:bg-gray-700 cursor-pointer hover:bg-gray-300 dark:hover:bg-gray-600 transition duration-150 font-medium">
+                            Acciones
+                        </summary>
+                        <div
+                            class="absolute right-0 bottom-full mb-2 w-48 origin-top-right rounded-md shadow-2xl bg-white dark:bg-gray-800 ring-1 ring-black ring-opacity-5 focus:outline-none z-10">
+                            <div class="py-1" role="menu" aria-orientation="vertical" aria-labelledby="menu-button"
+                                tabindex="-1">
+                                <button id="exportResults"
+                                    class="w-full text-right px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
+                                    role="menuitem" tabindex="-1">
+                                    📤 Exportar Resultados
+                                </button>
+                                <button id="compareUsers"
+                                    class="w-full text-right px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
+                                    role="menuitem" tabindex="-1">
+                                    ⚖️ Comparar Jugadores
+                                </button>
+                                <button id="statsBtn"
+                                    class="w-full text-right px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
+                                    role="menuitem" tabindex="-1">
+                                    📊 Ver Estadísticas
+                                </button>
+                            </div>
+                        </div>
+                    </details>
+                </div>
+                <div id="resultsDiv">
+                </div>
+            </section>
         </div>
     </main>
 
-    <div id="floating-actions" class="fixed bottom-6 right-6 z-50">
-        <details class="relative inline-block text-right">
-            <summary
-                class="px-5 py-3 bg-indigo-600 text-white rounded-full cursor-pointer shadow-lg hover:bg-indigo-700 transition duration-150 font-medium">
-                Acciones
-            </summary>
-            <div
-                class="absolute right-0 bottom-full mb-2 w-48 origin-top-right rounded-md shadow-2xl bg-white dark:bg-gray-800 ring-1 ring-black ring-opacity-5 focus:outline-none">
-                <div class="py-1" role="menu" aria-orientation="vertical" aria-labelledby="menu-button" tabindex="-1">
-                    <button id="exportResults"
-                        class="w-full text-right px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
-                        role="menuitem" tabindex="-1">
-                        📤 Exportar Resultados
-                    </button>
-                    <button id="compareUsers"
-                        class="w-full text-right px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
-                        role="menuitem" tabindex="-1">
-                        ⚖️ Comparar Jugadores
-                    </button>
-                    <button id="statsBtn"
-                        class="w-full text-right px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
-                        role="menuitem" tabindex="-1">
-                        📊 Estadísticas
-                    </button>
-                </div>
-            </div>
-        </details>
+    <footer class="text-center p-4 text-xs text-gray-500 dark:text-gray-400">
+        Magic Card Matcher - Utiliza datos de Cardmarket y Scryfall (proxy de precios MKM)
+    </footer>
+
+    <div id="mainMessage"
+        class="fixed top-4 left-1/2 transform -translate-x-1/2 px-6 py-3 rounded-lg shadow-xl text-white z-50 transition-opacity duration-300 opacity-0 pointer-events-none">
     </div>
+
     <script src="script.js"></script>
 </body>
 

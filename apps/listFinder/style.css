@@ -6,3 +6,16 @@ body {
 details summary::marker {
     color: #999;
 }
+
+/* Esconder scrollbar en Chrome, Safari y Opera */
+.no-scrollbar::-webkit-scrollbar {
+    display: none;
+}
+
+/* Esconder scrollbar en IE, Edge y Firefox */
+.no-scrollbar {
+    -ms-overflow-style: none;
+    /* IE and Edge */
+    scrollbar-width: none;
+    /* Firefox */
+}
